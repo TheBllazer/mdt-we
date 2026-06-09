@@ -384,7 +384,8 @@ registerPage('weapons', async el => {
   } catch(e) { el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`; }
 });
 
-window.openWeaponModal = function() {
+window.openWeaponModal = async function() {
+  const citizens = await getAll('citizens');
   openModal('Enregistrer une Arme',`
     <div class="form-grid">
       <div class="form-group"><label>N° de série *</label><input type="text" id="wp-serial"></div>
@@ -392,21 +393,39 @@ window.openWeaponModal = function() {
         <select id="wp-type">${['Révolver','Pistolet','Fusil','Fusil à pompe','Carabine','Couteau','Autre'].map(t=>`<option>${t}</option>`).join('')}</select>
       </div>
       <div class="form-group"><label>Modèle</label><input type="text" id="wp-model"></div>
-      <div class="form-group"><label>Propriétaire</label><input type="text" id="wp-owner"></div>
+      <div class="form-group full"><label>Propriétaire (citoyen enregistré)</label>
+        <select id="wp-owner-sel">
+          <option value="">— Sélectionner un citoyen —</option>
+          ${citizens.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group full"><label>Ou propriétaire libre (si non enregistré)</label>
+        <input type="text" id="wp-owner-free" placeholder="Nom libre">
+      </div>
       <div class="form-group"><label>Date</label><input type="date" id="wp-date" value="${nowDate()}"></div>
       <div class="form-group"><label>Statut</label>
         <select id="wp-status">${['En service','Confisqué','Perdu','Détruit'].map(s=>`<option>${s}</option>`).join('')}</select>
       </div>
     </div>`,async()=>{
-    const serial=document.getElementById('wp-serial').value.trim();
-    if(!serial) return showToast('N° de série obligatoire.','error');
+    const serial = document.getElementById('wp-serial').value.trim();
+    if (!serial) return showToast('N° de série obligatoire.','error');
+    const ownerFromList = document.getElementById('wp-owner-sel').value;
+    const ownerFree     = document.getElementById('wp-owner-free').value.trim();
+    const owner = ownerFree || ownerFromList;
     setModalLoading(true);
     try {
-      await createDoc('weapons',{serial,type:document.getElementById('wp-type').value,model:document.getElementById('wp-model').value,owner:document.getElementById('wp-owner').value,date:document.getElementById('wp-date').value,status:document.getElementById('wp-status').value});
-      await addLog('CRÉATION',`Arme enregistrée — ${serial}`);
-      closeModal();showToast('Enregistrée.','success');refreshPage();
-    }catch(e){showToast('Erreur : '+e.message,'error');}
-    finally{setModalLoading(false);}
+      await createDoc('weapons',{
+        serial,
+        type:   document.getElementById('wp-type').value,
+        model:  document.getElementById('wp-model').value,
+        owner,
+        date:   document.getElementById('wp-date').value,
+        status: document.getElementById('wp-status').value,
+      });
+      await addLog('CRÉATION',`Arme enregistrée — ${serial} — ${owner||'—'}`);
+      closeModal(); showToast('Enregistrée.','success'); refreshPage();
+    }catch(e){ showToast('Erreur : '+e.message,'error'); }
+    finally{ setModalLoading(false); }
   },'Enregistrer');
 };
 
@@ -439,22 +458,49 @@ registerPage('properties', async el => {
   }catch(e){el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`;}
 });
 
-window.openPropertyModal=function(){
+window.openPropertyModal = async function() {
+  const citizens = await getAll('citizens');
   openModal('Nouvelle Propriété',`
     <div class="form-grid">
       <div class="form-group full"><label>Nom *</label><input type="text" id="pr-name"></div>
       <div class="form-group full"><label>Adresse</label><input type="text" id="pr-addr"></div>
-      <div class="form-group"><label>Propriétaire</label><input type="text" id="pr-owner"></div>
-      <div class="form-group"><label>Type</label><select id="pr-type">${['Ranch','Résidence','Commerce','Terrain','Autre'].map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Statut</label><select id="pr-status">${['Actif','Saisie','Abandonné','Sous surveillance'].map(s=>`<option>${s}</option>`).join('')}</select></div>
+      <div class="form-group full"><label>Propriétaire (citoyen enregistré)</label>
+        <select id="pr-owner-sel">
+          <option value="">— Sélectionner un citoyen —</option>
+          ${citizens.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group full"><label>Ou propriétaire libre (si non enregistré)</label>
+        <input type="text" id="pr-owner-free" placeholder="Nom libre">
+      </div>
+      <div class="form-group"><label>Type</label>
+        <select id="pr-type">${['Ranch','Résidence','Appartement','Commerce','Terrain','Autre'].map(t=>`<option>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Statut</label>
+        <select id="pr-status">${['Actif','Saisie','Abandonné','Sous surveillance'].map(s=>`<option>${s}</option>`).join('')}</select>
+      </div>
       <div class="form-group full"><label>Notes</label><textarea id="pr-notes"></textarea></div>
     </div>`,async()=>{
-    const name=document.getElementById('pr-name').value.trim();
-    if(!name) return showToast('Nom obligatoire.','error');
+    const name = document.getElementById('pr-name').value.trim();
+    if (!name) return showToast('Nom obligatoire.','error');
+    const ownerFromList = document.getElementById('pr-owner-sel').value;
+    const ownerFree     = document.getElementById('pr-owner-free').value.trim();
+    const owner = ownerFree || ownerFromList;
     setModalLoading(true);
-    try{await createDoc('properties',{name,address:document.getElementById('pr-addr').value,owner:document.getElementById('pr-owner').value,type:document.getElementById('pr-type').value,status:document.getElementById('pr-status').value,notes:document.getElementById('pr-notes').value});
-      await addLog('CRÉATION',`Propriété — ${name}`);closeModal();showToast('Enregistrée.','success');refreshPage();}
-    catch(e){showToast('Erreur : '+e.message,'error');}finally{setModalLoading(false);}
+    try {
+      await createDoc('properties',{
+        name,
+        address: document.getElementById('pr-addr').value,
+        owner,
+        type:    document.getElementById('pr-type').value,
+        status:  document.getElementById('pr-status').value,
+        notes:   document.getElementById('pr-notes').value,
+      });
+      await addLog('CRÉATION',`Propriété — ${name}`);
+      closeModal(); showToast('Enregistrée.','success'); refreshPage();
+    } catch(e){ showToast('Erreur : '+e.message,'error'); }
+    finally{ setModalLoading(false); }
   },'Enregistrer');
 };
 
@@ -742,11 +788,11 @@ registerPage('logs', async el => {
   if (!isCommander()){el.innerHTML='<div class="notice notice-error">Accès réservé au Commander.</div>';return;}
   el.innerHTML = pageHeader('Traçabilité','Journal des Actions');
   try {
-    const logs = await getLogs(150);
+    const logs = await getLogs(50);
     el.innerHTML += `
       <div class="card" style="padding:0;">
         <div style="padding:.75rem 1.5rem;background:var(--leather);color:var(--gold);font-family:var(--font-stamp);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;">
-          ${logs.length} entrée(s) — 150 dernières actions
+          ${logs.length} entrée(s) — 50 dernières actions
         </div>
         <div style="padding:.75rem 1.5rem;">
           ${logs.length?logs.map(l=>`
@@ -759,3 +805,149 @@ registerPage('logs', async el => {
       </div>`;
   }catch(e){el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`;}
 });
+
+// ═══════════════════════════════════════════════════════════
+// GROUPES ILLÉGAUX
+// ═══════════════════════════════════════════════════════════
+registerPage('groupes', async el => {
+  el.innerHTML = pageHeader('Bureau du Renseignement', 'Groupes Illégaux',
+    `<button class="btn btn-primary" onclick="openGroupeModal()">+ Nouveau Groupe</button>`);
+  try {
+    const groupes = await getAll('groupes');
+    if (!groupes.length) {
+      el.innerHTML += '<div class="card"><p class="text-muted">Aucun groupe enregistré.</p></div>';
+      return;
+    }
+    const COUNTIES = ['West Elizabeth','Lemoyne','Ambarino','New Austin'];
+    groupes.forEach(g => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.borderLeft = '4px solid var(--bordeaux)';
+      card.innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.85rem;">
+          <div>
+            <div style="font-family:var(--font-display);font-size:1.15rem;font-weight:900;color:var(--bordeaux);">🔴 ${esc(g.nom)}</div>
+            <div class="text-muted" style="margin-top:.2rem;">Comté d'origine : ${esc(g.comte||'—')}</div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary btn-sm" onclick="openGroupeModal('${g.id}')">✏️ Modifier</button>
+            ${isCommander() ? `<button class="btn btn-danger btn-sm" onclick="deleteGroupe('${g.id}','${esc(g.nom).replace(/'/g,"\\'")}')">Suppr.</button>` : ''}
+          </div>
+        </div>
+        <div class="doc-field"><span class="doc-field-label">Description</span><span class="doc-field-value" id="grp-desc-${g.id}"></span></div>
+        <div style="margin-top:1rem;">
+          <div class="text-muted" style="margin-bottom:.5rem;">👥 Membres affiliés (${(g.membres||[]).length})</div>
+          ${(g.membres||[]).length ? `
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+              ${g.membres.map(m => `
+                <span style="background:var(--parchment);border:1px solid var(--bordeaux);padding:.2rem .65rem;font-size:.82rem;cursor:pointer;color:var(--bordeaux);"
+                  onclick="goToCitizen('${esc(m.citizenId)}','${esc(m.name).replace(/'/g,"\\'")}')">
+                  ${esc(m.name)}
+                </span>`).join('')}
+            </div>` : '<p class="text-muted">Aucun membre enregistré.</p>'}
+        </div>`;
+      el.appendChild(card);
+      // Injection sécurisée description
+      setTimeout(() => {
+        const d = document.getElementById(`grp-desc-${g.id}`);
+        if (d) d.textContent = g.description || '—';
+      }, 30);
+    });
+  } catch(e) { el.innerHTML += `<div class="notice notice-error">${esc(e.message)}</div>`; }
+});
+
+window.goToCitizen = function(citizenId, name) {
+  if (citizenId) {
+    viewCitizen(citizenId);
+  } else {
+    showToast(`Citoyen "${name}" non trouvé dans le registre.`, 'error');
+  }
+};
+
+window.openGroupeModal = async function(id = null) {
+  const g = id ? await getOne('groupes', id) : null;
+  const citizens = await getAll('citizens');
+  const COUNTIES = ['West Elizabeth', 'Lemoyne', 'Ambarino', 'New Austin'];
+  const currentMembres = g?.membres || [];
+
+  openModal(g ? 'Modifier le Groupe' : 'Nouveau Groupe Illégal', `
+    <div class="form-grid">
+      <div class="form-group full"><label>Nom du groupe *</label><input type="text" id="grp-nom"></div>
+      <div class="form-group full"><label>Comté d'origine</label>
+        <select id="grp-comte">
+          <option value="">— Sélectionner —</option>
+          ${COUNTIES.map(c => `<option ${g?.comte === c ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group full"><label>Description</label>
+        <textarea id="grp-desc" style="min-height:100px;"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:1rem;">
+      <div class="text-muted" style="margin-bottom:.5rem;">👥 Membres (sélectionner dans le registre des citoyens)</div>
+      <div id="grp-membres-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);padding:.75rem;background:var(--cream);">
+        ${citizens.map(c => {
+          const isMember = currentMembres.some(m => m.citizenId === c.id);
+          return `<label style="display:flex;align-items:center;gap:.5rem;padding:.3rem .25rem;cursor:pointer;font-size:.88rem;">
+            <input type="checkbox" class="grp-member-check"
+              data-id="${c.id}" data-name="${esc(c.name)}"
+              ${isMember ? 'checked' : ''}
+              style="accent-color:var(--bordeaux);">
+            ${esc(c.name)}${c.affiliationName ? ` <span class="text-muted">(déjà affilié : ${esc(c.affiliationName)})</span>` : ''}
+          </label>`;
+        }).join('')}
+      </div>
+    </div>
+  `, async () => {
+    const nom = document.getElementById('grp-nom').value.trim();
+    if (!nom) return showToast('Nom du groupe obligatoire.', 'error');
+    const membres = Array.from(document.querySelectorAll('.grp-member-check:checked'))
+      .map(cb => ({ citizenId: cb.dataset.id, name: cb.dataset.name }));
+    const desc = document.getElementById('grp-desc').value;
+    setModalLoading(true);
+    try {
+      const data = {
+        nom,
+        comte:       document.getElementById('grp-comte').value,
+        description: desc,
+        membres,
+      };
+      if (g) {
+        await updateDoc('groupes', g.id, data);
+        await addLog('MODIFICATION', `Groupe modifié — ${nom}`);
+      } else {
+        const newId = await createDoc('groupes', data);
+        // Mettre à jour affiliation sur chaque citoyen membre
+        for (const m of membres) {
+          await updateDoc('citizens', m.citizenId, { affiliation: newId, affiliationName: nom });
+        }
+        await addLog('CRÉATION', `Groupe créé — ${nom}`);
+      }
+      // Sync affiliation sur les citoyens (si modif)
+      if (g) {
+        for (const m of membres) {
+          await updateDoc('citizens', m.citizenId, { affiliation: g.id, affiliationName: nom });
+        }
+      }
+      closeModal(); showToast('Groupe enregistré.', 'success'); refreshPage();
+    } catch(e) { showToast('Erreur : ' + e.message, 'error'); }
+    finally { setModalLoading(false); }
+  }, g ? 'Modifier' : 'Créer');
+
+  setTimeout(() => {
+    if (g) {
+      document.getElementById('grp-nom').value  = g.nom || '';
+      document.getElementById('grp-desc').value = g.description || '';
+    }
+  }, 50);
+};
+
+window.deleteGroupe = async function(id, nom) {
+  if (!isCommander() || !confirm(`Supprimer le groupe "${nom}" ?`)) return;
+  try {
+    await deleteDoc('groupes', id);
+    await addLog('SUPPRESSION', `Groupe supprimé — ${nom}`);
+    showToast('Supprimé.', 'success');
+    refreshPage();
+  } catch(e) { showToast('Erreur : ' + e.message, 'error'); }
+};
