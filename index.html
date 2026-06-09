@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDT — West Elizabeth Law Enforcement</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="app-loader">
+  <div class="loader-star">✦</div>
+  <div class="loader-text">West Elizabeth Law Enforcement · Terminal de Données</div>
+</div>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-star">✦</div>
+    <div class="login-title">West Elizabeth<br>Law Enforcement</div>
+    <div class="login-subtitle">Terminal de Données Officiel · Anno Domini 1905</div>
+    <div class="login-divider">✦</div>
+    <form id="login-form" autocomplete="off">
+      <div class="form-group" style="margin-bottom:1rem;text-align:left;">
+        <label for="login-pwd">Mot de Passe</label>
+        <input type="password" id="login-pwd" placeholder="••••••••" autocomplete="off">
+      </div>
+      <div id="login-name-row" style="display:none;margin-bottom:1rem;text-align:left;">
+        <div class="form-group">
+          <label for="login-name">Votre nom</label>
+          <input type="text" id="login-name" placeholder="Prénom Nom" autocomplete="off">
+        </div>
+      </div>
+      <div id="login-grade-row" style="display:none;margin-bottom:1rem;text-align:left;">
+        <div class="form-group">
+          <label for="login-grade">Votre grade</label>
+          <select id="login-grade"></select>
+        </div>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="login-btn" id="login-submit">Accéder au Terminal</button>
+    </form>
+    <div class="login-footer">
+      Document officiel — Usage exclusif des Forces de l'Ordre<br>
+      Tout accès non autorisé est passible de poursuites
+    </div>
+  </div>
+</div>
+<div id="app">
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="header-star">✦</span>
+      <div>
+        <div class="header-title">West Elizabeth Law Enforcement</div>
+        <div class="header-sub">Terminal de Données Officiel · 1905</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-agent">
+        <div class="header-agent-name" id="header-agent-name">—</div>
+        <div class="header-agent-rank" id="header-agent-rank">—</div>
+      </div>
+      <button class="header-badge" id="logout-btn">⬡ Déconnexion</button>
+    </div>
+  </header>
+  <div class="app-layout">
+    <nav class="sidebar">
+      <div class="sidebar-section-label">Navigation</div>
+      <button class="nav-item" data-page="dashboard"><span class="nav-icon">⊞</span> Tableau de Bord</button>
+      <div class="sidebar-section-label">Registres Civils</div>
+      <button class="nav-item" data-page="citizens"><span class="nav-icon">👤</span> Citoyens</button>
+      <button class="nav-item" data-page="records"><span class="nav-icon">📜</span> Casiers Judiciaires</button>
+      <button class="nav-item" data-page="properties"><span class="nav-icon">🏠</span> Propriétés</button>
+      <button class="nav-item" data-page="weapons"><span class="nav-icon">🔫</span> Armes</button>
+      <div class="sidebar-section-label">Opérations</div>
+      <button class="nav-item" data-page="reports"><span class="nav-icon">📋</span> Rapports d'Incident</button>
+      <button class="nav-item" data-page="warrants"><span class="nav-icon">⚠</span> Mandats d'Arrêt</button>
+      <button class="nav-item" data-page="enquetes"><span class="nav-icon">🔍</span> Enquêtes</button>
+      <div class="sidebar-section-label">Référence</div>
+      <button class="nav-item" data-page="penal"><span class="nav-icon">⚖️</span> Code Pénal</button>
+      <div class="sidebar-section-label">Administration</div>
+      <button class="nav-item" data-page="personnel"><span class="nav-icon">🌟</span> Personnel FDO</button>
+      <button class="nav-item nav-commander" data-page="logs" style="display:none;"><span class="nav-icon">📖</span> Journal des Actions</button>
+      <div class="sidebar-dept-legend">
+        <div class="sidebar-dept-title">Départements</div>
+        ⭐ Command's Office<br>
+        🟤 Sheriff de Valentine<br>
+        🟠 Sheriff de Strawberry<br>
+        🔵 Police de Blackwater
+      </div>
+    </nav>
+    <main class="main-content" id="main-content"></main>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">—</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+<script src="js/firebase-config.js"></script>
+<script src="js/grades.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pages1.js"></script>
+<script src="js/pages2.js"></script>
+</body>
+</html>
