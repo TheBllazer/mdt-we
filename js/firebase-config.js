@@ -1,13 +1,8 @@
-/* ============================================================
-   CONFIGURATION FIREBASE — À remplir avec vos propres valeurs
-   console.firebase.google.com → Paramètres projet → Votre app web
-   ============================================================ */
-
 const FIREBASE_CONFIG = {
-  apiKey:            "VOTRE_API_KEY",
-  authDomain:        "VOTRE_PROJECT.firebaseapp.com",
-  projectId:         "VOTRE_PROJECT_ID",
-  storageBucket:     "VOTRE_PROJECT.appspot.com",
-  messagingSenderId: "VOTRE_SENDER_ID",
-  appId:             "VOTRE_APP_ID"
+  apiKey:            "AIzaSyAv1kMvtlKXdXt3wNsE5YzoV-iqZQpyd7k",
+  authDomain:        "wele-12746.firebaseapp.com",
+  projectId:         "wele-12746",
+  storageBucket:     "wele-12746.firebasestorage.app",
+  messagingSenderId: "885663550984",
+  appId:             "1:885663550984:web:86671cff6e9c94e8c5cbbd"
 };
