@@ -147,6 +147,7 @@ async function addPhotoToDoc(collection, docId, photoUrl, photoName) {
 }
 
 async function removePhotoFromDoc(collection, docId, photo) {
+  if (!photo) throw new Error('Objet photo invalide (undefined).');
   await col(collection).doc(docId).update({
     photos:    firebase.firestore.FieldValue.arrayRemove(photo),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),

@@ -217,15 +217,20 @@ window.removePhoto = async function(collection, docId, idx) {
   if (!isCommander() || !confirm('Supprimer cette photo ?')) return;
   try {
     const doc    = await getOne(collection, docId);
-    const photos = (doc.photos||[]);
-    await removePhotoFromDoc(collection, docId, photos[idx]);
-    await addLog('PHOTO', `Photo supprimée — ${collection}`);
-    showToast('Photo supprimée.','success');
+    const photos = doc.photos || [];
+    const photo  = photos[idx];
+    if (!photo) return showToast('Photo introuvable.', 'error');
+    await removePhotoFromDoc(collection, docId, photo);
+    await addLog('PHOTO', 'Photo supprimée — ' + collection);
+    showToast('Photo supprimée.', 'success');
+    // Fermer la modale si on est dedans, puis rafraîchir selon le contexte
     closeModal();
-    if (collection === 'reports')  setTimeout(() => viewReport(docId), 200);
+    if (collection === 'reports')  setTimeout(() => viewReport(docId),  200);
     if (collection === 'warrants') setTimeout(() => viewWarrant(docId), 200);
     if (collection === 'citizens') setTimeout(() => viewCitizen(docId), 200);
-  } catch(e) { showToast('Erreur : '+e.message,'error'); }
+    if (collection === 'records')  setTimeout(() => viewRecord(docId),  200);
+    if (collection === 'groupes')  setTimeout(() => refreshPage(),      200);
+  } catch(e) { showToast('Erreur : ' + e.message, 'error'); }
 };
 
 window.openPhotoViewer = function(url, name) {
