@@ -192,6 +192,8 @@ window.openAddPhotoModal = function(collection, docId) {
       if (collection === 'reports')  { setTimeout(() => viewReport(docId), 200); }
       if (collection === 'warrants') { setTimeout(() => viewWarrant(docId), 200); }
       if (collection === 'citizens') { setTimeout(() => viewCitizen(docId), 200); }
+      if (collection === 'groupes')  { setTimeout(() => refreshPage(), 200); }
+      if (collection === 'records')  { setTimeout(() => viewRecord(docId), 200); }
     } catch(e) { showToast('Erreur : '+e.message,'error'); }
     finally { setModalLoading(false); }
   }, 'Ajouter');

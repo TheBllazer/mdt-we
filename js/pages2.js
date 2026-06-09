@@ -912,6 +912,10 @@ function renderGroupeCard(el, g, citizens, reports, enquetes) {
         <button class="btn btn-secondary btn-sm" onclick="openLinkModal('${g.id}','enquete')">+ Lier une enquête</button>
       </div>
       ${enquetesHtml}
+    </div>
+
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--border);">
+      ${photoGalleryHtml(g.photos || [], 'groupes', g.id)}
     </div>`;
 
   el.appendChild(card);
@@ -927,7 +931,8 @@ function renderGroupeCard(el, g, citizens, reports, enquetes) {
 window.openLinkModal = async function(groupeId, type) {
   const isReport = type === 'report';
   const g = await getOne('groupes', groupeId);
-  const existingIds = new Set((isReport ? g.reportRefs : g.enqueteRefs || []).map(r => r.id));
+  // Bug fix : || [] sur les deux champs pour éviter .map() sur undefined
+  const existingIds = new Set((isReport ? (g.reportRefs || []) : (g.enqueteRefs || [])).map(r => r.id));
   const all = isReport ? await getAll('reports') : await getAll('enquetes');
   const available = all.filter(x => !existingIds.has(x.id));
 
@@ -947,8 +952,10 @@ window.openLinkModal = async function(groupeId, type) {
     const linkTitle = rest.join('||');
     setModalLoading(true);
     try {
+      // Relire le groupe au moment de la sauvegarde pour avoir les données fraîches
+      const gFresh  = await getOne('groupes', groupeId);
       const field   = isReport ? 'reportRefs' : 'enqueteRefs';
-      const current = g[field] || [];
+      const current = gFresh[field] || [];
       await updateDoc('groupes', groupeId, { [field]: [...current, { id: linkId, title: linkTitle }] });
       await addLog('LIAISON', (isReport ? 'Rapport' : 'Enquête') + ' lié(e) au groupe — ' + linkTitle);
       closeModal();
@@ -1007,7 +1014,7 @@ window.openGroupeModal = async function(id) {
         await updateDoc('groupes', g.id, data);
         await addLog('MODIFICATION', 'Groupe modifié — ' + nom);
       } else {
-        await createDoc('groupes', Object.assign({}, data, { reportRefs: [], enqueteRefs: [] }));
+        await createDoc('groupes', Object.assign({}, data, { reportRefs: [], enqueteRefs: [], photos: [] }));
         await addLog('CRÉATION', 'Groupe créé — ' + nom);
       }
       closeModal();
