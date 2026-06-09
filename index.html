@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAD — West Elizabeth Law Enforcement</title>
+  <title>MDT — West Elizabeth Law Enforcement</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -11,13 +11,13 @@
 <body>
 <div id="app-loader">
   <div class="loader-star">✦</div>
-  <div class="loader-text">West Elizabeth Law Enforcement · Répertoire des Archives et Documents</div>
+  <div class="loader-text">West Elizabeth Law Enforcement · Terminal de Données</div>
 </div>
 <div id="login-screen">
   <div class="login-card">
     <div class="login-star">✦</div>
     <div class="login-title">West Elizabeth<br>Law Enforcement</div>
-    <div class="login-subtitle">Répertoire Officiel des Archives et Documents · Anno Domini 1905</div>
+    <div class="login-subtitle">Terminal de Données Officiel · Anno Domini 1905</div>
     <div class="login-divider">✦</div>
     <form id="login-form" autocomplete="off">
       <div class="form-group" style="margin-bottom:1rem;text-align:left;">
@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="login-error" id="login-error"></div>
-      <button type="submit" class="login-btn" id="login-submit">Accéder au Répertoire</button>
+      <button type="submit" class="login-btn" id="login-submit">Accéder au Terminal</button>
     </form>
     <div class="login-footer">
       Document officiel — Usage exclusif des Forces de l'Ordre<br>
@@ -51,7 +51,7 @@
       <span class="header-star">✦</span>
       <div>
         <div class="header-title">West Elizabeth Law Enforcement</div>
-        <div class="header-sub">Répertoire Officiel des Archives et Documents · 1905</div>
+        <div class="header-sub">Terminal de Données Officiel · 1905</div>
       </div>
     </div>
     <div class="header-right">
@@ -75,6 +75,7 @@
       <button class="nav-item" data-page="reports"><span class="nav-icon">📋</span> Rapports d'Incident</button>
       <button class="nav-item" data-page="warrants"><span class="nav-icon">⚠</span> Mandats d'Arrêt</button>
       <button class="nav-item" data-page="enquetes"><span class="nav-icon">🔍</span> Enquêtes</button>
+      <button class="nav-item" data-page="groupes"><span class="nav-icon">🔴</span> Groupes Illégaux</button>
       <div class="sidebar-section-label">Référence</div>
       <button class="nav-item" data-page="penal"><span class="nav-icon">⚖️</span> Code Pénal</button>
       <div class="sidebar-section-label">Administration</div>
@@ -83,7 +84,7 @@
       <div class="sidebar-dept-legend">
         <div class="sidebar-dept-title">Départements</div>
         ⭐ Command's Office<br>
-        🟢 Sheriff de Valentine<br>
+        🟤 Sheriff de Valentine<br>
         🟠 Sheriff de Strawberry<br>
         🔵 Police de Blackwater
       </div>
