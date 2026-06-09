@@ -276,11 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-item').forEach(item =>
     item.addEventListener('click', () => navigateTo(item.dataset.page)));
 
-  // Fermer modale en cliquant dehors
-  document.getElementById('modal-overlay')?.addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-
   // Déconnexion
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     if (!confirm('Se déconnecter du MDT ?')) return;
