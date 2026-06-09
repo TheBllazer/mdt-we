@@ -1155,15 +1155,15 @@ window.exportReportPNG = async function(id) {
 
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:155px;left:110px;' +
+      'position:absolute;bottom:55px;left:110px;' +
       'font-family:Special Elite,Courier New,monospace;' +
-      'font-size:16px;letter-spacing:.1em;text-transform:uppercase;' +
-      'color:#3D1F0D;line-height:2;text-align:center;' +
+      'font-size:22px;letter-spacing:.1em;text-transform:uppercase;' +
+      'color:#3D1F0D;line-height:2.1;text-align:center;' +
     '"></div>' +
 
     // ── SIGNATURE cursive — bas droite ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:130px;right:110px;' +
+      'position:absolute;bottom:45px;right:110px;' +
       'font-family:Pinyon Script,cursive;' +
       'font-size:58px;color:#3D1F0D;' +
       'transform:rotate(-6deg);transform-origin:right bottom;' +
@@ -1178,14 +1178,18 @@ window.exportReportPNG = async function(id) {
   document.getElementById('exp-meta').textContent  =
     formatDate(r.date || r.createdAt) + '  ·  ' + (r.dept || '') +
     (r.approvedBy ? '  ·  Approuvé par ' + r.approvedBy : '');
-  document.getElementById('exp-narrative').textContent = r.narrative || '';
+  // Nettoyer les balises HTML du récit (évite d'afficher <p>, </p> etc.)
+  const rawNarrative = r.narrative || '';
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = rawNarrative;
+  document.getElementById('exp-narrative').textContent = tempDiv.innerText || tempDiv.textContent || rawNarrative;
 
   // Bloc agent bas gauche
   const agentEl = document.getElementById('exp-agent');
   agentEl.innerHTML =
-    '<div style="font-size:16px;">' + esc(r.createdBy || '') + '</div>' +
-    '<div style="font-size:13px;opacity:.8;">' + esc(r.createdByGrade || '') + '</div>' +
-    (agentTelegram ? '<div style="font-size:13px;opacity:.72;">' + esc(agentTelegram) + '</div>' : '');
+    '<div style="font-size:22px;font-weight:600;">' + esc(r.createdBy || '') + '</div>' +
+    '<div style="font-size:18px;opacity:.82;">' + esc(r.createdByGrade || '') + '</div>' +
+    (agentTelegram ? '<div style="font-size:17px;opacity:.72;">' + esc(agentTelegram) + '</div>' : '');
 
   document.getElementById('exp-signature').textContent = r.createdBy || '';
 
