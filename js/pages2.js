@@ -239,8 +239,10 @@ window.openReportModal = async function() {
         await updateDoc('enquetes',enqId,{ reportRefs:[...refs,{id:docId,title}] });
       }
       await addLog('CRÉATION',`Rapport rédigé — ${title}`);
-      closeModal(); showToast('Rapport soumis.','success');
-      setTimeout(()=>viewReport(docId),300);
+      closeModal();
+      showToast('Rapport soumis.','success');
+      refreshPage();
+      setTimeout(()=>viewReport(docId), 600);
     } catch(e) { showToast('Erreur : '+e.message,'error'); }
     finally { setModalLoading(false); }
   }, 'Soumettre');
@@ -351,7 +353,8 @@ window.openWarrantModal = async function() {
       const docId = await createDoc('warrants',{ suspectName:name, crime, level:document.getElementById('w-level').value, bounty:parseInt(document.getElementById('w-bounty').value)||0, status:'Actif', photos:[] });
       await addLog('ÉMISSION',`Mandat émis — ${name}`);
       closeModal(); showToast('Mandat émis.','success');
-      setTimeout(()=>viewWarrant(docId),300);
+      refreshPage();
+      setTimeout(()=>viewWarrant(docId), 600);
     } catch(e) { showToast('Erreur : '+e.message,'error'); }
     finally { setModalLoading(false); }
   },'Émettre');
