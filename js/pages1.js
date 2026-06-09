@@ -79,13 +79,14 @@ function renderCitizenTable(el, all, query) {
     <div class="card" style="padding:0;">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Nom</th><th>Naissance</th><th>Profession</th><th>Domicile</th><th>Statut</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Naissance</th><th>Profession</th><th>Domicile</th><th>Télégramme</th><th>Statut</th><th>Actions</th></tr></thead>
           <tbody>
             ${filtered.length ? filtered.map(c=>`<tr>
               <td class="fw-bold">${esc(c.name)}</td>
               <td>${formatDate(c.dob)}</td>
               <td>${esc(c.occupation||'—')}</td>
               <td>${esc(c.domicile||'—')}</td>
+              <td>${c.telegram?`<span style="font-family:var(--font-stamp);font-size:.75rem;">${esc(c.telegram)}</span>`:'—'}</td>
               <td>${statusBadge(c.status)}</td>
               <td><div class="btn-group">
                 <button class="btn btn-secondary btn-sm" onclick="viewCitizen('${c.id}')">Fiche</button>
@@ -93,7 +94,7 @@ function renderCitizenTable(el, all, query) {
                 <button class="btn btn-secondary btn-sm" onclick="openCitizenModal('${c.id}')">Modifier</button>
                 ${isCommander()?`<button class="btn btn-danger btn-sm" onclick="deleteCitizen('${c.id}','${esc(c.name).replace(/'/g,"\\'")}')">Suppr.</button>`:''}
               </div></td>
-            </tr>`).join('') : emptyRow(6)}
+            </tr>`).join('') : emptyRow(7)}
           </tbody>
         </table>
       </div>
@@ -239,6 +240,7 @@ function renderRecordTable(el, all, query) {
               <td>${esc(r.sentence||'—')}</td>
               <td>${statusBadge(r.status)}</td>
               <td><div class="btn-group">
+                <button class="btn btn-secondary btn-sm" onclick="viewRecord('${r.id}')">Voir & Photos</button>
                 <button class="btn btn-secondary btn-sm" onclick="openRecordModal('${r.id}')">Modifier</button>
                 ${isCommander()?`<button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}','${esc(r.citizenName).replace(/'/g,"\\'")}')">Suppr.</button>`:''}
               </div></td>
@@ -297,7 +299,7 @@ window.openRecordModal = async function(id=null) {
         status:   document.getElementById('r-status').value,
       };
       if (r) { await updateDoc('records',r.id,data); await addLog('MODIFICATION',`Casier modifié — ${cname}`); }
-      else   { await createDoc('records',data);      await addLog('CRÉATION',`Casier créé — ${cname}`); }
+      else   { await createDoc('records',{...data,photos:[]}); await addLog('CRÉATION',`Casier créé — ${cname}`); }
       closeModal(); showToast('Casier enregistré.','success'); refreshPage();
     } catch(e) { showToast('Erreur : '+e.message,'error'); }
     finally { setModalLoading(false); }
@@ -310,4 +312,31 @@ window.deleteRecord = async function(id, name) {
   if (!isCommander()||!confirm(`Supprimer ce casier pour ${name} ?`)) return;
   try { await deleteDoc('records',id); await addLog('SUPPRESSION',`Casier supprimé — ${name}`); showToast('Supprimé.','success'); refreshPage(); }
   catch(e) { showToast('Erreur : '+e.message,'error'); }
+};
+
+// ── Fiche casier judiciaire avec photos ────────────────────────
+window.viewRecord = async function(id) {
+  const r = await getOne('records', id);
+  if (!r) return;
+  openModal('Casier Judiciaire', `
+    <div class="document-header">
+      <div class="document-title">${esc(r.citizenName)}</div>
+      <div class="document-ref">Casier judiciaire — West Elizabeth Law Enforcement</div>
+    </div>
+    <div class="doc-field"><span class="doc-field-label">Date</span><span class="doc-field-value">${formatDate(r.date)}</span></div>
+    <div class="doc-field"><span class="doc-field-label">Amende</span><span class="doc-field-value">${r.fine ? '$'+r.fine : '—'}</span></div>
+    <div class="doc-field"><span class="doc-field-label">Peine</span><span class="doc-field-value">${esc(r.sentence||'—')}</span></div>
+    <div class="doc-field"><span class="doc-field-label">Statut</span><span class="doc-field-value">${statusBadge(r.status)}</span></div>
+    <div style="margin-top:1rem;">
+      <div class="text-muted" style="margin-bottom:.5rem;">Faits retenus</div>
+      <div style="background:var(--parchment);border:1px solid var(--border);padding:.75rem 1rem;">
+        ${(r.facts||[r.offense]).filter(Boolean).map(f=>`
+          <div style="padding:.25rem 0;border-bottom:1px solid rgba(160,128,64,.15);font-size:.88rem;">• ${esc(f)}</div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="doc-field" style="margin-top:.75rem;"><span class="doc-field-label">Rédigé par</span><span class="doc-field-value">${esc(r.createdBy)} — ${esc(r.createdByGrade)}</span></div>
+    ${photoGalleryHtml(r.photos||[], 'records', id)}
+  `);
+  await addLog('CONSULTATION', `Casier consulté — ${r.citizenName}`);
 };

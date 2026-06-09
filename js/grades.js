@@ -70,21 +70,20 @@ function getGradeIcon(g) { return GRADES[g]?.icon ?? '?'; }
 function getGradeDept(g) { return GRADES[g]?.dept ?? 'command'; }
 function isCommanderOnlyGrade(g) { return GRADES[g]?.commanderOnly === true; }
 
-function buildGradeSelect(selectId, selected = '', forceCommander = false) {
+function buildGradeSelect(selectId, selected = '') {
   const sel = document.getElementById(selectId);
   if (!sel) return;
-  const showAll = forceCommander || isCommander();
+  // Tous les grades sont toujours affichés.
+  // Les grades ⭐ sont accessibles uniquement avec le mot de passe Commander —
+  // la validation dans firebase.js bloque si le grade ne correspond pas au rôle.
   let html = '<option value="">— Sélectionner un grade —</option>';
   for (const [deptKey, dept] of Object.entries(DEPARTMENTS)) {
-    const gradeList = Object.entries(GRADES).filter(([, g]) => {
-      if (g.dept !== deptKey) return false;
-      if (g.commanderOnly && !showAll) return false;
-      return true;
-    });
+    const gradeList = Object.entries(GRADES).filter(([, g]) => g.dept === deptKey);
     if (!gradeList.length) continue;
     html += `<optgroup label="${dept.icon} ${dept.label}">`;
     for (const [g] of gradeList) {
-      html += `<option value="${g}" ${selected === g ? 'selected' : ''}>${g}${GRADES[g].commanderOnly ? ' ⭐' : ''}</option>`;
+      const locked = GRADES[g].commanderOnly;
+      html += `<option value="${g}" ${selected === g ? 'selected' : ''}>${g}${locked ? ' ⭐' : ''}</option>`;
     }
     html += '</optgroup>';
   }
@@ -198,57 +197,70 @@ const CATEGORY_COLORS = {
 function buildPenalCodePicker(containerId, selectedFacts = []) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  let searchQuery = '';
+  const sel = new Set(selectedFacts);
 
-  function render() {
-    const sel = new Set(selectedFacts);
-    let html = `
-      <div style="margin-bottom:.75rem;">
-        <input type="search" id="penal-search" placeholder="Rechercher un article…"
-          style="width:100%;padding:.5rem .75rem;background:var(--cream);border:1px solid var(--border);border-bottom:2px solid var(--leather);font-family:var(--font-body);font-size:.85rem;outline:none;"
-          value="${searchQuery}">
-      </div>
-    `;
-    for (const [category, titles] of Object.entries(PENAL_CODE)) {
-      const col = CATEGORY_COLORS[category] || {};
-      let catHtml = '';
-      for (const [titleLabel, arts] of Object.entries(titles)) {
-        const filteredArts = arts.filter(a =>
-          !searchQuery || a.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          titleLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          category.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        if (!filteredArts.length) continue;
-        catHtml += `<div style="margin-bottom:.5rem;">
-          <div style="font-family:var(--font-stamp);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:${col.text};opacity:.8;padding:.2rem 0;">${titleLabel}</div>`;
-        for (const art of filteredArts) {
-          const key = `${category} — ${titleLabel} — ${art}`;
-          const checked = sel.has(key);
-          catHtml += `
-            <label style="display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;cursor:pointer;border-radius:2px;transition:background .1s;"
-              onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background=''">
-              <input type="checkbox" data-fact="${key.replace(/"/g,'&quot;')}"
-                ${checked ? 'checked' : ''}
-                style="margin-top:.2rem;flex-shrink:0;accent-color:var(--leather);">
-              <span style="font-size:.85rem;line-height:1.4;">${art}</span>
-            </label>`;
-        }
-        catHtml += '</div>';
+  // Construire le HTML UNE SEULE FOIS avec tous les articles
+  // La recherche filtre via display:none sans détruire le DOM (conserve le focus)
+  let html = `
+    <div style="margin-bottom:.75rem;">
+      <input type="search" id="penal-search" placeholder="Rechercher un article…"
+        style="width:100%;padding:.5rem .75rem;background:var(--cream);border:1px solid var(--border);border-bottom:2px solid var(--leather);font-family:var(--font-body);font-size:.85rem;outline:none;">
+    </div>
+  `;
+
+  for (const [category, titles] of Object.entries(PENAL_CODE)) {
+    const col = CATEGORY_COLORS[category] || {};
+    let catHtml = '';
+    for (const [titleLabel, arts] of Object.entries(titles)) {
+      catHtml += `<div class="penal-title-group" data-title="${titleLabel.toLowerCase()}" data-cat="${category.toLowerCase()}" style="margin-bottom:.5rem;">
+        <div style="font-family:var(--font-stamp);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:${col.text};opacity:.8;padding:.2rem 0;">${titleLabel}</div>`;
+      for (const art of arts) {
+        const key = `${category} — ${titleLabel} — ${art}`;
+        const checked = sel.has(key);
+        catHtml += `
+          <label class="penal-art-label" data-art="${art.toLowerCase()}" data-title="${titleLabel.toLowerCase()}" data-cat="${category.toLowerCase()}"
+            style="display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;cursor:pointer;border-radius:2px;"
+            onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background=''">
+            <input type="checkbox" data-fact="${key.replace(/"/g,'&quot;')}"
+              ${checked ? 'checked' : ''}
+              style="margin-top:.2rem;flex-shrink:0;accent-color:var(--leather);">
+            <span style="font-size:.85rem;line-height:1.4;">${art}</span>
+          </label>`;
       }
-      if (!catHtml) continue;
-      html += `
-        <div style="background:${col.bg};border:1px solid ${col.border};border-left:4px solid ${col.border};padding:.75rem 1rem;margin-bottom:.75rem;">
-          <div style="font-family:var(--font-display);font-size:.9rem;font-weight:700;color:${col.text};margin-bottom:.5rem;">${category}</div>
-          ${catHtml}
-        </div>`;
+      catHtml += '</div>';
     }
-    container.innerHTML = html;
-    document.getElementById('penal-search')?.addEventListener('input', e => {
-      searchQuery = e.target.value;
-      render();
-    });
+    html += `
+      <div class="penal-cat-block" style="background:${col.bg};border:1px solid ${col.border};border-left:4px solid ${col.border};padding:.75rem 1rem;margin-bottom:.75rem;">
+        <div style="font-family:var(--font-display);font-size:.9rem;font-weight:700;color:${col.text};margin-bottom:.5rem;">${category}</div>
+        ${catHtml}
+      </div>`;
   }
-  render();
+
+  container.innerHTML = html;
+
+  // Recherche : filtre par display sans toucher au DOM des checkboxes
+  document.getElementById('penal-search')?.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    container.querySelectorAll('.penal-art-label').forEach(label => {
+      const match = !q
+        || label.dataset.art.includes(q)
+        || label.dataset.title.includes(q)
+        || label.dataset.cat.includes(q);
+      label.style.display = match ? 'flex' : 'none';
+    });
+    // Masquer les blocs de titres entièrement vides
+    container.querySelectorAll('.penal-title-group').forEach(group => {
+      const anyVisible = Array.from(group.querySelectorAll('.penal-art-label'))
+        .some(l => l.style.display !== 'none');
+      group.style.display = anyVisible ? '' : 'none';
+    });
+    // Masquer les catégories entièrement vides
+    container.querySelectorAll('.penal-cat-block').forEach(block => {
+      const anyVisible = Array.from(block.querySelectorAll('.penal-art-label'))
+        .some(l => l.style.display !== 'none');
+      block.style.display = anyVisible ? '' : 'none';
+    });
+  });
 }
 
 function getSelectedFacts(containerId) {

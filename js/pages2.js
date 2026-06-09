@@ -178,7 +178,21 @@ window.approveReport = async function(id) {
 
 window.deleteReport = async function(id) {
   if (!isCommander()||!confirm('Supprimer ce rapport ?')) return;
-  try { await deleteDoc('reports',id); await addLog('SUPPRESSION','Rapport supprimé'); showToast('Supprimé.','success'); refreshPage(); }
+  try {
+    // Retirer la référence dans l'enquête liée avant de supprimer
+    const r = await getOne('reports', id);
+    if (r?.enqueteId) {
+      const enq = await getOne('enquetes', r.enqueteId);
+      if (enq) {
+        const updatedRefs = (enq.reportRefs||[]).filter(ref => ref.id !== id);
+        await updateDoc('enquetes', r.enqueteId, { reportRefs: updatedRefs });
+      }
+    }
+    await deleteDoc('reports', id);
+    await addLog('SUPPRESSION', `Rapport supprimé — ${r?.title||id}`);
+    showToast('Supprimé.','success');
+    refreshPage();
+  }
   catch(e) { showToast('Erreur : '+e.message,'error'); }
 };
 
