@@ -179,9 +179,31 @@ td { padding:.75rem 1rem;color:var(--ink);vertical-align:middle;line-height:1.5;
 .search-bar .form-group { margin-bottom:0;flex:1;min-width:180px; }
 
 /* ── Modal ── */
-.modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:center;justify-content:center;padding:1rem; }
-.modal-overlay.open { display:flex; }
-.modal { background:var(--parchment);border:2px solid var(--border);box-shadow:0 0 0 5px var(--leather),0 24px 56px rgba(0,0,0,.65);width:100%;max-width:700px;max-height:92vh;overflow-y:auto;position:relative; }
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  /* Désactiver les clics sur le fond — la modale seule est cliquable */
+  pointer-events: none;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--parchment);
+  border: 2px solid var(--border);
+  box-shadow: 0 0 0 5px var(--leather), 0 24px 56px rgba(0,0,0,.65);
+  width: 100%;
+  max-width: 700px;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+  /* Réactiver les clics uniquement sur la modale */
+  pointer-events: all;
+}
 .modal-header { background:var(--leather);color:var(--gold);padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10; }
 .modal-title { font-family:var(--font-display);font-size:1.05rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase; }
 .modal-close { background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;opacity:.75;line-height:1; }
