@@ -223,13 +223,14 @@ window.removePhoto = async function(collection, docId, idx) {
     await removePhotoFromDoc(collection, docId, photo);
     await addLog('PHOTO', 'Photo supprimée — ' + collection);
     showToast('Photo supprimée.', 'success');
-    // Fermer la modale si on est dedans, puis rafraîchir selon le contexte
+    // Fermer la modale puis rouvrir avec données fraîches (auto-update)
     closeModal();
-    if (collection === 'reports')  setTimeout(() => viewReport(docId),  200);
-    if (collection === 'warrants') setTimeout(() => viewWarrant(docId), 200);
-    if (collection === 'citizens') setTimeout(() => viewCitizen(docId), 200);
-    if (collection === 'records')  setTimeout(() => viewRecord(docId),  200);
-    if (collection === 'groupes')  setTimeout(() => refreshPage(),      200);
+    const delay = 350;
+    if (collection === 'reports')  setTimeout(() => viewReport(docId),  delay);
+    if (collection === 'warrants') setTimeout(() => viewWarrant(docId), delay);
+    if (collection === 'citizens') setTimeout(() => viewCitizen(docId), delay);
+    if (collection === 'records')  setTimeout(() => viewRecord(docId),  delay);
+    if (collection === 'groupes')  { refreshPage(); }
   } catch(e) { showToast('Erreur : ' + e.message, 'error'); }
 };
 
