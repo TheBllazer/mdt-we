@@ -87,7 +87,7 @@ window.openAnnonceModal = async function(editIndex) {
   const items  = doc?.items || [];
   const existing = isEdit ? items[editIndex] : null;
 
-  openModal(isEdit ? 'Modifier l\'annonce' : 'Nouvelle Annonce', `
+  openModal(isEdit ? "Modifier l'annonce" : 'Nouvelle Annonce', `
     <div class="form-group" style="margin-bottom:1rem;">
       <label>Titre *</label>
       <input type="text" id="ann-title">
