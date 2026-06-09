@@ -1049,158 +1049,162 @@ window.deleteGroupe = async function(id, nom) {
 // ═══════════════════════════════════════════════════════════
 // EXPORT RAPPORT → PNG
 // ═══════════════════════════════════════════════════════════
+
+// Similarité entre deux chaînes (0 à 1) — Dice coefficient sur bigrammes
+function stringSimilarity(a, b) {
+  if (!a || !b) return 0;
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  if (a === b) return 1;
+  if (a.length < 2 || b.length < 2) return 0;
+  const getBigrams = s => {
+    const bigrams = new Set();
+    for (let i = 0; i < s.length - 1; i++) bigrams.add(s[i] + s[i+1]);
+    return bigrams;
+  };
+  const aB = getBigrams(a), bB = getBigrams(b);
+  let intersection = 0;
+  aB.forEach(bg => { if (bB.has(bg)) intersection++; });
+  return (2 * intersection) / (aB.size + bB.size);
+}
+
 window.exportReportPNG = async function(id) {
   const r = await getOne('reports', id);
   if (!r) return;
 
-  // Récupérer le télégramme de l'agent depuis le personnel
+  // Corrélation nom agent ↔ personnel FDO (seuil 90%)
   let agentTelegram = '';
   try {
     const allPersonnel = await getAll('personnel');
-    const agent = allPersonnel.find(p => p.name === r.createdBy);
-    if (agent && agent.telegram) agentTelegram = agent.telegram;
+    // Cherche d'abord une correspondance exacte, puis fuzzy à 90%
+    let match = allPersonnel.find(p => p.name === r.createdBy);
+    if (!match) {
+      match = allPersonnel
+        .map(p => ({ p, score: stringSimilarity(p.name, r.createdBy) }))
+        .filter(x => x.score >= 0.9)
+        .sort((a, b) => b.score - a.score)[0]?.p;
+    }
+    if (match && match.telegram) agentTelegram = match.telegram;
   } catch(e) { /* pas bloquant */ }
 
   showToast('Génération du PNG en cours…', 'info');
 
-  // Créer le conteneur de rendu (caché, hors écran)
+  // Dimensions A4 à 150dpi pour un rendu net
+  const W = 1240;
+  const H = 1754;
+
+  // Charger le template comme Image() pour résolution native
+  const templateImg = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = () => resolve(img);
+    img.onerror = () => reject(new Error('Template introuvable (assets/template-rapport.png)'));
+    img.src = 'assets/template-rapport.png?' + Date.now(); // cache-bust
+  });
+
+  // Conteneur de rendu hors-écran, aux dimensions réelles du template
   const container = document.createElement('div');
-  container.id = 'rapport-export-container';
-  container.style.cssText = [
-    'position:fixed',
-    'left:-9999px',
-    'top:0',
-    'width:794px',       // A4 width ~96dpi
-    'height:1123px',     // A4 height ~96dpi
-    'overflow:hidden',
-    'background:transparent',
-    'font-family:"Lora","Times New Roman",serif',
-  ].join(';');
+  container.style.cssText =
+    'position:fixed;left:-9999px;top:0;' +
+    'width:' + W + 'px;height:' + H + 'px;' +
+    'overflow:hidden;background:transparent;';
   document.body.appendChild(container);
 
-  // ── Template image comme fond ──
-  const templateUrl = 'assets/template-rapport.png';
+  // Fond = canvas avec le template dessiné nativement (pas de background-image CSS)
+  const bgCanvas = document.createElement('canvas');
+  bgCanvas.width  = W;
+  bgCanvas.height = H;
+  const ctx = bgCanvas.getContext('2d');
+  ctx.drawImage(templateImg, 0, 0, W, H);
 
-  container.innerHTML = `
-    <div style="
-      position:relative;
-      width:794px;
-      height:1123px;
-      background-image:url('${templateUrl}');
-      background-size:100% 100%;
-      background-repeat:no-repeat;
-    ">
+  // Convertir le canvas en data URL et l'utiliser comme <img> dans le conteneur
+  const bgDataUrl = bgCanvas.toDataURL('image/png');
 
-      <!-- ZONE TEXTE CENTRALE -->
-      <div style="
-        position:absolute;
-        top:205px;
-        left:56px;
-        right:56px;
-        height:620px;
-        overflow:hidden;
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-        padding:8px 4px;
-      ">
-        <!-- Titre du rapport -->
-        <div style="
-          font-family:'Playfair Display',Georgia,serif;
-          font-size:15px;
-          font-weight:700;
-          color:#3D1F0D;
-          text-transform:uppercase;
-          letter-spacing:.08em;
-          border-bottom:1px solid #A08040;
-          padding-bottom:6px;
-          margin-bottom:4px;
-        " id="exp-title"></div>
+  container.innerHTML =
+    '<div style="position:relative;width:' + W + 'px;height:' + H + 'px;">' +
 
-        <!-- Métadonnées -->
-        <div style="
-          font-family:'Special Elite','Courier New',monospace;
-          font-size:10px;
-          letter-spacing:.1em;
-          color:#8B6914;
-          text-transform:uppercase;
-          margin-bottom:8px;
-        " id="exp-meta"></div>
+    // Template en fond via <img> — html2canvas le capture à pleine résolution
+    '<img src="' + bgDataUrl + '" style="position:absolute;top:0;left:0;width:' + W + 'px;height:' + H + 'px;" />' +
 
-        <!-- Récit -->
-        <div style="
-          font-family:'Lora','Times New Roman',serif;
-          font-size:12px;
-          line-height:1.75;
-          color:#1A1008;
-          white-space:pre-wrap;
-          flex:1;
-          overflow:hidden;
-        " id="exp-narrative"></div>
-      </div>
+    // ── ZONE TEXTE CENTRALE ──
+    '<div style="' +
+      'position:absolute;' +
+      'top:320px;left:88px;right:88px;height:970px;' +
+      'overflow:hidden;display:flex;flex-direction:column;gap:14px;' +
+    '">' +
+      // Titre
+      '<div id="exp-title" style="' +
+        'font-family:Playfair Display,Georgia,serif;' +
+        'font-size:22px;font-weight:700;color:#3D1F0D;' +
+        'text-transform:uppercase;letter-spacing:.08em;' +
+        'border-bottom:1px solid #A08040;padding-bottom:8px;' +
+      '"></div>' +
+      // Métadonnées
+      '<div id="exp-meta" style="' +
+        'font-family:Special Elite,Courier New,monospace;' +
+        'font-size:14px;letter-spacing:.1em;color:#8B6914;' +
+        'text-transform:uppercase;margin-bottom:6px;' +
+      '"></div>' +
+      // Récit
+      '<div id="exp-narrative" style="' +
+        'font-family:Lora,Times New Roman,serif;' +
+        'font-size:16px;line-height:1.8;color:#1A1008;' +
+        'white-space:pre-wrap;flex:1;overflow:hidden;' +
+      '"></div>' +
+    '</div>' +
 
-      <!-- NOM / GRADE / TÉLÉGRAMME — bas gauche -->
-      <div style="
-        position:absolute;
-        bottom:102px;
-        left:72px;
-        font-family:'Special Elite','Courier New',monospace;
-        font-size:10px;
-        letter-spacing:.12em;
-        text-transform:uppercase;
-        color:#3D1F0D;
-        line-height:1.9;
-        text-align:center;
-      " id="exp-agent"></div>
+    // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
+    '<div id="exp-agent" style="' +
+      'position:absolute;bottom:155px;left:110px;' +
+      'font-family:Special Elite,Courier New,monospace;' +
+      'font-size:16px;letter-spacing:.1em;text-transform:uppercase;' +
+      'color:#3D1F0D;line-height:2;text-align:center;' +
+    '"></div>' +
 
-      <!-- SIGNATURE cursive — bas droite -->
-      <div style="
-        position:absolute;
-        bottom:90px;
-        right:72px;
-        font-family:'Pinyon Script',cursive;
-        font-size:38px;
-        color:#3D1F0D;
-        transform:rotate(-6deg);
-        transform-origin:right bottom;
-        white-space:nowrap;
-        max-width:260px;
-        text-align:right;
-        line-height:1;
-        opacity:.92;
-      " id="exp-signature"></div>
+    // ── SIGNATURE cursive — bas droite ──
+    '<div id="exp-signature" style="' +
+      'position:absolute;bottom:130px;right:110px;' +
+      'font-family:Pinyon Script,cursive;' +
+      'font-size:58px;color:#3D1F0D;' +
+      'transform:rotate(-6deg);transform-origin:right bottom;' +
+      'white-space:nowrap;max-width:380px;' +
+      'text-align:right;line-height:1;opacity:.92;' +
+    '"></div>' +
 
-    </div>`;
+    '</div>';
 
-  // Injection sécurisée des contenus via textContent
-  document.getElementById('exp-title').textContent     = r.title || '';
-  document.getElementById('exp-meta').textContent      =
-    formatDate(r.date || r.createdAt) + '  ·  ' + (r.dept || '') + (r.approvedBy ? '  ·  Approuvé par ' + r.approvedBy : '');
+  // Injection sécurisée via textContent / innerHTML
+  document.getElementById('exp-title').textContent = r.title || '';
+  document.getElementById('exp-meta').textContent  =
+    formatDate(r.date || r.createdAt) + '  ·  ' + (r.dept || '') +
+    (r.approvedBy ? '  ·  Approuvé par ' + r.approvedBy : '');
   document.getElementById('exp-narrative').textContent = r.narrative || '';
-  document.getElementById('exp-agent').innerHTML =
-    '<div>' + esc(r.createdBy || '') + '</div>' +
-    '<div style="font-size:9px;opacity:.8;">' + esc(r.createdByGrade || '') + '</div>' +
-    (agentTelegram ? '<div style="font-size:9px;opacity:.75;">' + esc(agentTelegram) + '</div>' : '');
+
+  // Bloc agent bas gauche
+  const agentEl = document.getElementById('exp-agent');
+  agentEl.innerHTML =
+    '<div style="font-size:16px;">' + esc(r.createdBy || '') + '</div>' +
+    '<div style="font-size:13px;opacity:.8;">' + esc(r.createdByGrade || '') + '</div>' +
+    (agentTelegram ? '<div style="font-size:13px;opacity:.72;">' + esc(agentTelegram) + '</div>' : '');
+
   document.getElementById('exp-signature').textContent = r.createdBy || '';
 
-  // Attendre que la police Pinyon Script soit chargée
+  // Attendre polices + petit délai de sécurité
   await document.fonts.ready;
-
-  // Délai pour laisser le background-image se charger
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await new Promise(resolve => setTimeout(resolve, 400));
 
   try {
     const canvas = await html2canvas(container.firstElementChild, {
-      width:       794,
-      height:      1123,
-      scale:       2,          // ×2 pour une meilleure résolution
-      useCORS:     true,
-      allowTaint:  true,
+      width:           W,
+      height:          H,
+      scale:           1,        // déjà en haute résolution (1240×1754)
+      useCORS:         true,
+      allowTaint:      true,
       backgroundColor: null,
-      logging:     false,
+      logging:         false,
+      imageTimeout:    10000,
     });
 
-    // Téléchargement automatique
     const link = document.createElement('a');
     const filename = 'rapport-' + (r.title || id).replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.png';
     link.download = filename;
