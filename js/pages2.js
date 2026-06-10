@@ -1221,11 +1221,11 @@ window.exportReportPNG = async function(id) {
         'font-size:16px;letter-spacing:.1em;color:#8B6914;' +
         'text-transform:uppercase;margin-bottom:8px;' +
       '"></div>' +
-      // Récit
+      // Récit — overflow:auto pour permettre la mesure du scrollHeight
       '<div id="exp-narrative" style="' +
         'font-family:Lora,Times New Roman,serif;' +
         'font-size:18px;line-height:1.8;color:#1A1008;' +
-        'flex:1;overflow:hidden;' +
+        'flex:1;overflow:auto;' +
       '"></div>' +
     '</div>' +
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
@@ -1282,7 +1282,37 @@ window.exportReportPNG = async function(id) {
 
   document.getElementById('exp-signature').textContent = r.createdBy || '';
 
-  // Attendre polices + petit délai de sécurité
+  // ── Réduction automatique de la taille du texte si débordement ──
+  // La zone narrative a height:1400px avec overflow:hidden.
+  // On réduit la font-size par paliers de 1px jusqu'à ce que scrollHeight ≤ clientHeight.
+  const FONT_MIN  = 11;  // taille minimale en px
+  const FONT_INIT = 18;  // taille initiale en px
+  let   fontSize  = FONT_INIT;
+
+  // Attendre un tick pour que le navigateur calcule les dimensions
+  await new Promise(resolve => setTimeout(resolve, 80));
+
+  while (narrativeEl.scrollHeight > narrativeEl.clientHeight && fontSize > FONT_MIN) {
+    fontSize -= 0.5;
+    narrativeEl.style.fontSize = fontSize + 'px';
+    // Réduire aussi légèrement les marges de paragraphes pour gagner de la place
+    const ratio = fontSize / FONT_INIT;
+    narrativeEl.querySelectorAll('p').forEach(p => {
+      p.style.marginBottom = Math.max(4, Math.round(14 * ratio)) + 'px';
+      p.style.lineHeight   = Math.max(1.3, 1.8 * ratio).toFixed(2);
+    });
+    // Pause pour laisser le navigateur recalculer
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  if (fontSize < FONT_INIT) {
+    showToast('Texte réduit à ' + fontSize + 'px pour tenir sur la page.', 'info');
+  }
+
+  // Repasser overflow:hidden avant capture pour un PNG propre
+  narrativeEl.style.overflow = 'hidden';
+
+  // Attendre polices + délai de sécurité
   await document.fonts.ready;
   await new Promise(resolve => setTimeout(resolve, 400));
 
