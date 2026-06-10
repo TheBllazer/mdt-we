@@ -741,15 +741,14 @@ registerPage('enquetes', async el => {
         ${(enq.reportRefs||[]).length?`<div class="text-muted" style="margin-top:.4rem;">📋 ${enq.reportRefs.length} rapport(s) lié(s)</div>`:''}`;
       el.appendChild(card);
 
-      // Injection sécurisée du résumé — strip HTML Quill, affiche texte brut
-      setTimeout(() => {
-        const preview = document.getElementById('rcard-' + r.id);
-        if (!preview) return;
+      // Injection synchrone du résumé — strip HTML Quill avant affichage
+      const preview = document.getElementById('rcard-' + r.id);
+      if (preview) {
         const tmp = document.createElement('div');
         tmp.innerHTML = r.narrative || '';
         const plainText = (tmp.innerText || tmp.textContent || '').trim();
         preview.textContent = plainText.substring(0, 220) + (plainText.length > 220 ? '…' : '');
-      }, 20);
+      }
     });
   }catch(e){el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`;}
 });
