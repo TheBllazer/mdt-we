@@ -90,7 +90,14 @@ window.viewReport = async function(id) {
   `);
   setTimeout(() => {
     const el = document.getElementById('view-narrative');
-    if (el) el.textContent = r.narrative||'';
+    if (el) {
+      // Afficher le HTML riche si présent, sinon texte brut
+      if (r.narrative && r.narrative.includes('<')) {
+        el.innerHTML = r.narrative;
+      } else {
+        el.textContent = r.narrative || '';
+      }
+    }
     const footer = document.getElementById('modal-footer');
     if (footer) {
       const btns = [];
@@ -131,13 +138,20 @@ window.editReport = async function(id) {
           ${enquetes.map(e=>`<option value="${e.id}||${esc(e.name)}" ${r.enqueteId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}
         </select>
       </div>
-      <div class="form-group full"><label>Récit des faits *</label><textarea id="re-narrative" style="min-height:160px;"></textarea></div>
+      <div class="form-group full">
+        <label>Récit des faits *</label>
+        <div class="quill-wrapper" id="re-quill-wrapper">
+          <div id="re-quill-editor"></div>
+        </div>
+      </div>
     </div>
     <div class="notice notice-info mt-1">✒ Rédigé par : <strong>${esc(r.createdBy)}</strong> — ${esc(r.createdByGrade)}</div>
   `, async () => {
-    const title     = document.getElementById('re-title').value.trim();
-    const narrative = document.getElementById('re-narrative').value.trim();
-    if (!title||!narrative) return showToast('Titre et récit obligatoires.','error');
+    const title = document.getElementById('re-title').value.trim();
+    const quillEdit = window._quillEdit;
+    const narrative = quillEdit ? quillEdit.root.innerHTML : '';
+    const narrativeText = quillEdit ? quillEdit.getText().trim() : '';
+    if (!title || !narrativeText) return showToast('Titre et récit obligatoires.','error');
     const enqueteVal = document.getElementById('re-enquete').value;
     const [enqId, enqName] = enqueteVal ? enqueteVal.split('||') : ['',''];
     setModalLoading(true);
@@ -163,10 +177,28 @@ window.editReport = async function(id) {
   }, 'Enregistrer');
   setTimeout(() => {
     const t = document.getElementById('re-title');
-    const n = document.getElementById('re-narrative');
-    if (t) t.value = r.title||'';
-    if (n) n.value = r.narrative||'';
-  }, 50);
+    if (t) t.value = r.title || '';
+    if (typeof Quill === 'undefined') return;
+    window._quillEdit = new Quill('#re-quill-editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+  [{ 'header': [1, 2, 3, false] }],
+  [{ 'size': ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ 'color': [] }, { 'background': [] }],
+  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  [{ 'indent': '-1' }, { 'indent': '+1' }],
+  [{ 'align': [] }],
+  ['blockquote', 'clean']
+]
+      }
+    });
+    // Injecter le contenu existant (HTML ou texte brut)
+    if (r.narrative) {
+      window._quillEdit.root.innerHTML = r.narrative;
+    }
+  }, 80);
 };
 
 window.approveReport = async function(id) {
@@ -217,14 +249,21 @@ window.openReportModal = async function() {
           ${enquetes.map(e=>`<option value="${e.id}||${esc(e.name)}">${esc(e.name)}</option>`).join('')}
         </select>
       </div>
-      <div class="form-group full"><label>Récit des faits *</label><textarea id="rp-narrative" style="min-height:150px;"></textarea></div>
+      <div class="form-group full">
+        <label>Récit des faits *</label>
+        <div class="quill-wrapper" id="rp-quill-wrapper">
+          <div id="rp-quill-editor"></div>
+        </div>
+      </div>
     </div>
     <div class="notice notice-info mt-1">✒ Signature : <strong>${esc(s.name)}</strong> — ${esc(s.grade)}</div>
     <div class="notice notice-warn">⏳ En attente d'approbation par le Commander.</div>
   `, async () => {
     const title = document.getElementById('rp-title').value.trim();
-    const narrative = document.getElementById('rp-narrative').value.trim();
-    if (!title||!narrative) return showToast('Titre et récit obligatoires.','error');
+    const quillCreate = window._quillCreate;
+    const narrative = quillCreate ? quillCreate.root.innerHTML : '';
+    const narrativeText = quillCreate ? quillCreate.getText().trim() : '';
+    if (!title || !narrativeText) return showToast('Titre et récit obligatoires.','error');
     const enqueteVal = document.getElementById('rp-enquete').value;
     const [enqId, enqName] = enqueteVal ? enqueteVal.split('||') : ['',''];
     setModalLoading(true);
@@ -250,6 +289,27 @@ window.openReportModal = async function() {
     } catch(e) { showToast('Erreur : '+e.message,'error'); }
     finally { setModalLoading(false); }
   }, 'Soumettre');
+
+  // Init Quill après rendu de la modale
+  setTimeout(() => {
+    if (typeof Quill === 'undefined') return;
+    window._quillCreate = new Quill('#rp-quill-editor', {
+      theme: 'snow',
+      placeholder: 'Décrivez l\'incident avec précision…',
+      modules: {
+        toolbar: [
+  [{ 'header': [1, 2, 3, false] }],
+  [{ 'size': ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ 'color': [] }, { 'background': [] }],
+  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+  [{ 'indent': '-1' }, { 'indent': '+1' }],
+  [{ 'align': [] }],
+  ['blockquote', 'clean']
+]
+      }
+    });
+  }, 80);
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1155,7 +1215,7 @@ window.exportReportPNG = async function(id) {
 
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:90px;left:110px;' +
+      'position:absolute;bottom:55px;left:110px;' +
       'font-family:Special Elite,Courier New,monospace;' +
       'font-size:22px;letter-spacing:.1em;text-transform:uppercase;' +
       'color:#3D1F0D;line-height:2.1;text-align:center;' +
@@ -1163,8 +1223,8 @@ window.exportReportPNG = async function(id) {
 
     // ── SIGNATURE cursive — bas droite ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:150px;right:110px;' +
-      'font-family:Dancing Script,cursive;' +
+      'position:absolute;bottom:45px;right:110px;' +
+      'font-family:Pinyon Script,cursive;' +
       'font-size:58px;color:#3D1F0D;' +
       'transform:rotate(-6deg);transform-origin:right bottom;' +
       'white-space:nowrap;max-width:380px;' +
