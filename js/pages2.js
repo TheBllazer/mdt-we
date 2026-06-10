@@ -1208,7 +1208,7 @@ window.exportReportPNG = async function(id) {
       // Récit — innerHTML pour conserver la mise en forme Quill
       '<div id="exp-narrative" style="' +
         'font-family:Lora,Times New Roman,serif;' +
-        'font-size:16px;line-height:1.8;color:#1A1008;' +
+        'font-size:20px;line-height:1.8;color:#1A1008;' +
         'flex:1;overflow:hidden;' +
       '"></div>' +
     '</div>' +
