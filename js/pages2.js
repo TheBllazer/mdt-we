@@ -34,10 +34,17 @@ registerPage('reports', async el => {
 
 function buildReportCard(r) {
   const isPending = r.status === 'En attente';
-  const canEdit   = isPending || isCommander(); // Commander peut toujours modifier
+  const canEdit   = isPending || isCommander();
   const card = document.createElement('div');
   card.className = 'card';
   card.style.borderLeft = `4px solid ${isPending?'var(--gold)':'var(--green)'}`;
+
+  // Extraire le texte brut du HTML Quill pour le résumé
+  const tmp = document.createElement('div');
+  tmp.innerHTML = r.narrative || '';
+  const plainText = (tmp.innerText || tmp.textContent || '').trim();
+  const preview = plainText.substring(0, 220) + (plainText.length > 220 ? '…' : '');
+
   card.innerHTML = `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem;">
       <div>
@@ -54,7 +61,7 @@ function buildReportCard(r) {
         ${isCommander()?`<button class="btn btn-danger btn-sm" onclick="deleteReport('${r.id}')">Suppr.</button>`:''}
       </div>
     </div>
-    <p style="font-size:.88rem;line-height:1.65;" id="rcard-${r.id}"></p>
+    <p style="font-size:.88rem;line-height:1.65;">${esc(preview)}</p>
     ${(r.photos||[]).length?`<div class="text-muted" style="margin-top:.4rem;">📷 ${r.photos.length} photo(s)</div>`:''}`;
   return card;
 }
