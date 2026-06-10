@@ -747,15 +747,6 @@ registerPage('enquetes', async el => {
         <p style="font-size:.88rem;line-height:1.65;">${esc((enq.description||'').substring(0,200))}${(enq.description||'').length>200?'…':''}</p>
         ${(enq.reportRefs||[]).length?`<div class="text-muted" style="margin-top:.4rem;">📋 ${enq.reportRefs.length} rapport(s) lié(s)</div>`:''}`;
       el.appendChild(card);
-
-      // Injection synchrone du résumé — strip HTML Quill avant affichage
-      const preview = document.getElementById('rcard-' + r.id);
-      if (preview) {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = r.narrative || '';
-        const plainText = (tmp.innerText || tmp.textContent || '').trim();
-        preview.textContent = plainText.substring(0, 220) + (plainText.length > 220 ? '…' : '');
-      }
     });
   }catch(e){el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`;}
 });
