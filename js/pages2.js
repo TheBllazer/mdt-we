@@ -1215,7 +1215,7 @@ window.exportReportPNG = async function(id) {
 
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche (remonté) ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:130px;left:110px;' +
+      'position:absolute;bottom:90px;left:110px;' +
       'font-family:Special Elite,Courier New,monospace;' +
       'font-size:22px;letter-spacing:.1em;text-transform:uppercase;' +
       'color:#3D1F0D;line-height:2.1;text-align:left;' +
