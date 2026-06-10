@@ -366,3 +366,36 @@ td { padding:.75rem 1rem;color:var(--ink);vertical-align:middle;line-height:1.5;
   background: var(--cream);
   border: 1px solid var(--border);
 }
+
+/* ── Zone narrative — préserve la mise en forme Quill ── */
+.narrative-content p {
+  margin-bottom: .85rem;
+  line-height: 1.75;
+}
+.narrative-content p:last-child { margin-bottom: 0; }
+.narrative-content p.ql-align-center { text-align: center; }
+.narrative-content p.ql-align-right  { text-align: right; }
+.narrative-content p.ql-align-justify { text-align: justify; }
+.narrative-content h1, .narrative-content h2, .narrative-content h3 {
+  font-family: var(--font-display);
+  color: var(--leather);
+  margin: .75rem 0 .4rem;
+}
+.narrative-content strong { font-weight: 700; }
+.narrative-content em     { font-style: italic; }
+.narrative-content u      { text-decoration: underline; }
+.narrative-content s      { text-decoration: line-through; }
+.narrative-content blockquote {
+  border-left: 3px solid var(--border);
+  margin: .5rem 0;
+  padding-left: 1rem;
+  color: var(--sepia);
+  font-style: italic;
+}
+.narrative-content ol, .narrative-content ul {
+  padding-left: 1.5rem;
+  margin-bottom: .75rem;
+}
+.narrative-content li { margin-bottom: .25rem; }
+.narrative-content .ql-indent-1 { padding-left: 2rem; }
+.narrative-content .ql-indent-2 { padding-left: 4rem; }
