@@ -74,7 +74,7 @@ window.viewReport = async function(id) {
       .map(([l,v])=>`<div class="doc-field"><span class="doc-field-label">${l}</span><span class="doc-field-value">${l==='Statut'?statusBadge(v):esc(String(v))}</span></div>`).join('')}
     <div style="margin-top:1.25rem;">
       <div class="text-muted" style="margin-bottom:.5rem;">Récit des faits</div>
-      <p id="view-narrative" style="line-height:1.75;font-size:.92rem;"></p>
+      <div id="view-narrative" class="narrative-content" style="line-height:1.75;font-size:.92rem;"></div>
     </div>
     <div class="signature-block">
       <div class="signature-field">
@@ -1242,15 +1242,22 @@ window.exportReportPNG = async function(id) {
   // Récit : injecter le HTML Quill directement pour conserver la mise en forme
   const narrativeEl = document.getElementById('exp-narrative');
   if (r.narrative && r.narrative.trim().startsWith('<')) {
-    // HTML Quill — injection directe avec styles inline forcés pour html2canvas
     narrativeEl.innerHTML = r.narrative;
-    // Forcer la couleur de base sur tous les éléments pour html2canvas
+    // Forcer les styles de base pour html2canvas + restaurer les marges de paragraphes
+    narrativeEl.querySelectorAll('p').forEach(p => {
+      if (!p.style.marginBottom) p.style.marginBottom = '14px';
+      if (!p.style.lineHeight)   p.style.lineHeight   = '1.8';
+    });
     narrativeEl.querySelectorAll('*').forEach(el => {
-      if (!el.style.color) el.style.color = '#1A1008';
       if (!el.style.fontFamily) el.style.fontFamily = 'Lora,Times New Roman,serif';
+      if (!el.style.color && el.tagName !== 'SPAN') el.style.color = '#1A1008';
     });
   } else {
-    narrativeEl.textContent = r.narrative || '';
+    // Texte brut — convertir les sauts de ligne en paragraphes
+    const paras = (r.narrative || '').split(/\n\n+/);
+    narrativeEl.innerHTML = paras
+      .map(p => '<p style="margin-bottom:14px;line-height:1.8;">' + esc(p.replace(/\n/g, '<br>')) + '</p>')
+      .join('');
   }
 
   // Bloc agent bas gauche
