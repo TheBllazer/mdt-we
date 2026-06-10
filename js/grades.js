@@ -13,8 +13,8 @@ const DEPARTMENTS = {
 // Grades — commander:true = accès compte commander requis pour sélectionner
 const GRADES = {
   'Commander':                          { dept: 'command',    icon: '⭐', commanderOnly: true },
-  'Sheriff (Valentine)':                { dept: 'valentine',  icon: '🟤', commanderOnly: true },
-  'Undersheriff (Valentine)':           { dept: 'valentine',  icon: '⭐' },
+  'Sheriff (Valentine)':                { dept: 'valentine',  icon: '⭐', commanderOnly: true },
+  'Undersheriff (Valentine)':           { dept: 'valentine',  icon: '🟢' },
   'Chief Deputy Sheriff (Valentine)':   { dept: 'valentine',  icon: '🟢' },
   'Deputy Sheriff (Valentine)':         { dept: 'valentine',  icon: '🟢' },
   'Deputy Trainee Sheriff (Valentine)': { dept: 'valentine',  icon: '🟢' },
