@@ -318,3 +318,51 @@ td { padding:.75rem 1rem;color:var(--ink);vertical-align:middle;line-height:1.5;
   .main-content { padding:0; }
   .card { box-shadow:none; }
 }
+
+/* ── Quill éditeur de texte riche — style 1905 ── */
+.quill-wrapper {
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--leather);
+  background: var(--cream);
+}
+.quill-wrapper .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--parchment);
+  padding: .4rem .5rem;
+  flex-wrap: wrap;
+}
+.quill-wrapper .ql-toolbar button,
+.quill-wrapper .ql-toolbar .ql-picker {
+  color: var(--leather);
+}
+.quill-wrapper .ql-toolbar button:hover,
+.quill-wrapper .ql-toolbar button.ql-active,
+.quill-wrapper .ql-toolbar .ql-picker-label:hover {
+  color: var(--bordeaux);
+}
+.quill-wrapper .ql-toolbar .ql-stroke { stroke: var(--leather); }
+.quill-wrapper .ql-toolbar button:hover .ql-stroke,
+.quill-wrapper .ql-toolbar button.ql-active .ql-stroke { stroke: var(--bordeaux); }
+.quill-wrapper .ql-toolbar .ql-fill { fill: var(--leather); }
+.quill-wrapper .ql-container {
+  border: none;
+  font-family: var(--font-body);
+  font-size: .95rem;
+}
+.quill-wrapper .ql-editor {
+  min-height: 160px;
+  max-height: 340px;
+  overflow-y: auto;
+  color: var(--ink);
+  line-height: 1.7;
+}
+.quill-wrapper .ql-editor.ql-blank::before {
+  color: var(--sepia);
+  font-style: italic;
+  font-family: var(--font-body);
+}
+.quill-wrapper .ql-picker-options {
+  background: var(--cream);
+  border: 1px solid var(--border);
+}
