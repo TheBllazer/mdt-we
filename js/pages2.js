@@ -1189,7 +1189,7 @@ window.exportReportPNG = async function(id) {
     // ── ZONE TEXTE CENTRALE ──
     '<div style="' +
       'position:absolute;' +
-      'top:320px;left:88px;right:88px;height:970px;' +
+      'top:320px;left:88px;right:88px;height:980px;' +
       'overflow:hidden;display:flex;flex-direction:column;gap:14px;' +
     '">' +
       // Titre
@@ -1205,44 +1205,53 @@ window.exportReportPNG = async function(id) {
         'font-size:14px;letter-spacing:.1em;color:#8B6914;' +
         'text-transform:uppercase;margin-bottom:6px;' +
       '"></div>' +
-      // Récit
+      // Récit — innerHTML pour conserver la mise en forme Quill
       '<div id="exp-narrative" style="' +
         'font-family:Lora,Times New Roman,serif;' +
         'font-size:16px;line-height:1.8;color:#1A1008;' +
-        'white-space:pre-wrap;flex:1;overflow:hidden;' +
+        'flex:1;overflow:hidden;' +
       '"></div>' +
     '</div>' +
 
-    // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
+    // ── NOM / GRADE / TÉLÉGRAMME — bas gauche (remonté) ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:55px;left:110px;' +
+      'position:absolute;bottom:130px;left:110px;' +
       'font-family:Special Elite,Courier New,monospace;' +
       'font-size:22px;letter-spacing:.1em;text-transform:uppercase;' +
-      'color:#3D1F0D;line-height:2.1;text-align:center;' +
+      'color:#3D1F0D;line-height:2.1;text-align:left;' +
     '"></div>' +
 
-    // ── SIGNATURE cursive — bas droite ──
+    // ── SIGNATURE cursive — bas droite (Great Vibes, mieux calibrée) ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:45px;right:110px;' +
-      'font-family:Pinyon Script,cursive;' +
-      'font-size:58px;color:#3D1F0D;' +
-      'transform:rotate(-6deg);transform-origin:right bottom;' +
-      'white-space:nowrap;max-width:380px;' +
-      'text-align:right;line-height:1;opacity:.92;' +
+      'position:absolute;bottom:118px;right:110px;' +
+      'font-family:Great Vibes,cursive;' +
+      'font-size:62px;color:#3D1F0D;' +
+      'transform:rotate(-5deg);transform-origin:right bottom;' +
+      'white-space:nowrap;max-width:420px;' +
+      'text-align:right;line-height:1;opacity:.90;' +
     '"></div>' +
 
     '</div>';
 
-  // Injection sécurisée via textContent / innerHTML
+  // Injection sécurisée
   document.getElementById('exp-title').textContent = r.title || '';
   document.getElementById('exp-meta').textContent  =
     formatDate(r.date || r.createdAt) + '  ·  ' + (r.dept || '') +
     (r.approvedBy ? '  ·  Approuvé par ' + r.approvedBy : '');
-  // Nettoyer les balises HTML du récit (évite d'afficher <p>, </p> etc.)
-  const rawNarrative = r.narrative || '';
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = rawNarrative;
-  document.getElementById('exp-narrative').textContent = tempDiv.innerText || tempDiv.textContent || rawNarrative;
+
+  // Récit : injecter le HTML Quill directement pour conserver la mise en forme
+  const narrativeEl = document.getElementById('exp-narrative');
+  if (r.narrative && r.narrative.trim().startsWith('<')) {
+    // HTML Quill — injection directe avec styles inline forcés pour html2canvas
+    narrativeEl.innerHTML = r.narrative;
+    // Forcer la couleur de base sur tous les éléments pour html2canvas
+    narrativeEl.querySelectorAll('*').forEach(el => {
+      if (!el.style.color) el.style.color = '#1A1008';
+      if (!el.style.fontFamily) el.style.fontFamily = 'Lora,Times New Roman,serif';
+    });
+  } else {
+    narrativeEl.textContent = r.narrative || '';
+  }
 
   // Bloc agent bas gauche
   const agentEl = document.getElementById('exp-agent');
