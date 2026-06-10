@@ -1217,7 +1217,7 @@ window.exportReportPNG = async function(id) {
 
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:195px;left:95px;' +
+      'position:absolute;bottom:120px;left:95px;' +
       'font-family:Special Elite,Courier New,monospace;' +
       'font-size:24px;letter-spacing:.1em;text-transform:uppercase;' +
       'color:#3D1F0D;line-height:2.1;text-align:left;' +
@@ -1225,7 +1225,7 @@ window.exportReportPNG = async function(id) {
 
     // ── SIGNATURE cursive — bas, à gauche du sceau ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:185px;right:310px;' +
+      'position:absolute;bottom:130px;right:130px;' +
       'font-family:Great Vibes,cursive;' +
       'font-size:72px;color:#3D1F0D;' +
       'transform:rotate(-5deg);transform-origin:right bottom;' +
