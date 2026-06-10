@@ -1163,8 +1163,8 @@ window.exportReportPNG = async function(id) {
 
     // ── SIGNATURE cursive — bas droite ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:45px;right:110px;' +
-      'font-family:Pinyon Script,cursive;' +
+      'position:absolute;bottom:90px;right:110px;' +
+      'font-family:Dancing Script,cursive;' +
       'font-size:58px;color:#3D1F0D;' +
       'transform:rotate(-6deg);transform-origin:right bottom;' +
       'white-space:nowrap;max-width:380px;' +
