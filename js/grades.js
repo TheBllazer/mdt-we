@@ -5,7 +5,7 @@
 
 const DEPARTMENTS = {
   command:    { label: "Command's Office",      icon: '⭐' },
-  valentine:  { label: 'Sheriff de Valentine',  icon: '🟤' },
+  valentine:  { label: 'Sheriff de Valentine',  icon: '🟢' },
   strawberry: { label: 'Sheriff de Strawberry', icon: '🟠' },
   blackwater: { label: 'Police de Blackwater',  icon: '🔵' },
 };
@@ -14,16 +14,16 @@ const DEPARTMENTS = {
 const GRADES = {
   'Commander':                          { dept: 'command',    icon: '⭐', commanderOnly: true },
   'Sheriff (Valentine)':                { dept: 'valentine',  icon: '🟤', commanderOnly: true },
-  'Undersheriff (Valentine)':           { dept: 'valentine',  icon: '🟤' },
-  'Chief Deputy Sheriff (Valentine)':   { dept: 'valentine',  icon: '🟤' },
-  'Deputy Sheriff (Valentine)':         { dept: 'valentine',  icon: '🟤' },
-  'Deputy Trainee Sheriff (Valentine)': { dept: 'valentine',  icon: '🟤' },
-  'Sheriff (Strawberry)':               { dept: 'strawberry', icon: '🟠', commanderOnly: true },
+  'Undersheriff (Valentine)':           { dept: 'valentine',  icon: '⭐' },
+  'Chief Deputy Sheriff (Valentine)':   { dept: 'valentine',  icon: '🟢' },
+  'Deputy Sheriff (Valentine)':         { dept: 'valentine',  icon: '🟢' },
+  'Deputy Trainee Sheriff (Valentine)': { dept: 'valentine',  icon: '🟢' },
+  'Sheriff (Strawberry)':               { dept: 'strawberry', icon: '⭐', commanderOnly: true },
   'Undersheriff (Strawberry)':          { dept: 'strawberry', icon: '🟠' },
   'Chief Deputy Sheriff (Strawberry)':  { dept: 'strawberry', icon: '🟠' },
   'Deputy Sheriff (Strawberry)':        { dept: 'strawberry', icon: '🟠' },
   'Deputy Trainee Sheriff (Strawberry)':{ dept: 'strawberry', icon: '🟠' },
-  'Captain':                            { dept: 'blackwater', icon: '🔵', commanderOnly: true },
+  'Captain':                            { dept: 'blackwater', icon: '⭐', commanderOnly: true },
   'Lieutenant':                         { dept: 'blackwater', icon: '🔵' },
   'Sergeant':                           { dept: 'blackwater', icon: '🔵' },
   'Police Officer':                     { dept: 'blackwater', icon: '🔵' },
