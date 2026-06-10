@@ -1227,7 +1227,7 @@ window.exportReportPNG = async function(id) {
     '<div id="exp-signature" style="' +
       'position:absolute;bottom:130px;right:130px;' +
       'font-family:Great Vibes,cursive;' +
-      'font-size:72px;color:#3D1F0D;' +
+      'font-size:62px;color:#3D1F0D;' +
       'transform:rotate(-5deg);transform-origin:right bottom;' +
       'white-space:nowrap;max-width:480px;' +
       'text-align:right;line-height:1;opacity:.90;' +
