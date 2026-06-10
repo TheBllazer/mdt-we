@@ -1150,8 +1150,8 @@ window.exportReportPNG = async function(id) {
   showToast('Génération du PNG en cours…', 'info');
 
   // Dimensions A4 à 150dpi pour un rendu net
-  const W = 1240;
-  const H = 1754;
+  const W = 1414;
+  const H = 2000;
 
   // Charger le template comme Image() pour résolution native
   const templateImg = await new Promise((resolve, reject) => {
@@ -1183,51 +1183,53 @@ window.exportReportPNG = async function(id) {
   container.innerHTML =
     '<div style="position:relative;width:' + W + 'px;height:' + H + 'px;">' +
 
-    // Template en fond via <img> — html2canvas le capture à pleine résolution
+    // Template en fond via <img>
     '<img src="' + bgDataUrl + '" style="position:absolute;top:0;left:0;width:' + W + 'px;height:' + H + 'px;" />' +
 
-    // ── ZONE TEXTE CENTRALE ──
+    // ── ZONE TEXTE ──
+    // Template 1414x2000 : zone blanche top~220px, bottom~1630px, left~85px, right~1329px
     '<div style="' +
       'position:absolute;' +
-      'top:320px;left:88px;right:88px;height:980px;' +
-      'overflow:hidden;display:flex;flex-direction:column;gap:14px;' +
+      'top:220px;left:90px;right:90px;' +
+      'height:1400px;' +
+      'overflow:hidden;display:flex;flex-direction:column;gap:16px;' +
     '">' +
       // Titre
       '<div id="exp-title" style="' +
         'font-family:Playfair Display,Georgia,serif;' +
-        'font-size:22px;font-weight:700;color:#3D1F0D;' +
+        'font-size:26px;font-weight:700;color:#3D1F0D;' +
         'text-transform:uppercase;letter-spacing:.08em;' +
-        'border-bottom:1px solid #A08040;padding-bottom:8px;' +
+        'border-bottom:1px solid #A08040;padding-bottom:10px;' +
       '"></div>' +
       // Métadonnées
       '<div id="exp-meta" style="' +
         'font-family:Special Elite,Courier New,monospace;' +
-        'font-size:14px;letter-spacing:.1em;color:#8B6914;' +
-        'text-transform:uppercase;margin-bottom:6px;' +
+        'font-size:16px;letter-spacing:.1em;color:#8B6914;' +
+        'text-transform:uppercase;margin-bottom:8px;' +
       '"></div>' +
-      // Récit — innerHTML pour conserver la mise en forme Quill
+      // Récit
       '<div id="exp-narrative" style="' +
         'font-family:Lora,Times New Roman,serif;' +
-        'font-size:20px;line-height:1.8;color:#1A1008;' +
+        'font-size:18px;line-height:1.8;color:#1A1008;' +
         'flex:1;overflow:hidden;' +
       '"></div>' +
     '</div>' +
 
-    // ── NOM / GRADE / TÉLÉGRAMME — bas gauche (remonté) ──
+    // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
     '<div id="exp-agent" style="' +
-      'position:absolute;bottom:90px;left:110px;' +
+      'position:absolute;bottom:195px;left:95px;' +
       'font-family:Special Elite,Courier New,monospace;' +
-      'font-size:22px;letter-spacing:.1em;text-transform:uppercase;' +
+      'font-size:24px;letter-spacing:.1em;text-transform:uppercase;' +
       'color:#3D1F0D;line-height:2.1;text-align:left;' +
     '"></div>' +
 
-    // ── SIGNATURE cursive — bas droite (Great Vibes, mieux calibrée) ──
+    // ── SIGNATURE cursive — bas, à gauche du sceau ──
     '<div id="exp-signature" style="' +
-      'position:absolute;bottom:118px;right:110px;' +
+      'position:absolute;bottom:185px;right:310px;' +
       'font-family:Great Vibes,cursive;' +
-      'font-size:62px;color:#3D1F0D;' +
+      'font-size:72px;color:#3D1F0D;' +
       'transform:rotate(-5deg);transform-origin:right bottom;' +
-      'white-space:nowrap;max-width:420px;' +
+      'white-space:nowrap;max-width:480px;' +
       'text-align:right;line-height:1;opacity:.90;' +
     '"></div>' +
 
