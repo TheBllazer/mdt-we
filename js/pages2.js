@@ -54,7 +54,7 @@ function buildReportCard(r) {
         ${isCommander()?`<button class="btn btn-danger btn-sm" onclick="deleteReport('${r.id}')">Suppr.</button>`:''}
       </div>
     </div>
-    <p style="font-size:.88rem;line-height:1.65;">${esc((r.narrative||'').substring(0,220))}${(r.narrative||'').length>220?'…':''}</p>
+    <p style="font-size:.88rem;line-height:1.65;" id="rcard-${r.id}"></p>
     ${(r.photos||[]).length?`<div class="text-muted" style="margin-top:.4rem;">📷 ${r.photos.length} photo(s)</div>`:''}`;
   return card;
 }
@@ -740,6 +740,16 @@ registerPage('enquetes', async el => {
         <p style="font-size:.88rem;line-height:1.65;">${esc((enq.description||'').substring(0,200))}${(enq.description||'').length>200?'…':''}</p>
         ${(enq.reportRefs||[]).length?`<div class="text-muted" style="margin-top:.4rem;">📋 ${enq.reportRefs.length} rapport(s) lié(s)</div>`:''}`;
       el.appendChild(card);
+
+      // Injection sécurisée du résumé — strip HTML Quill, affiche texte brut
+      setTimeout(() => {
+        const preview = document.getElementById('rcard-' + r.id);
+        if (!preview) return;
+        const tmp = document.createElement('div');
+        tmp.innerHTML = r.narrative || '';
+        const plainText = (tmp.innerText || tmp.textContent || '').trim();
+        preview.textContent = plainText.substring(0, 220) + (plainText.length > 220 ? '…' : '');
+      }, 20);
     });
   }catch(e){el.innerHTML+=`<div class="notice notice-error">${esc(e.message)}</div>`;}
 });
@@ -1182,10 +1192,8 @@ window.exportReportPNG = async function(id) {
 
   container.innerHTML =
     '<div style="position:relative;width:' + W + 'px;height:' + H + 'px;">' +
-
     // Template en fond via <img>
     '<img src="' + bgDataUrl + '" style="position:absolute;top:0;left:0;width:' + W + 'px;height:' + H + 'px;" />' +
-
     // ── ZONE TEXTE ──
     // Template 1414x2000 : zone blanche top~220px, bottom~1630px, left~85px, right~1329px
     '<div style="' +
@@ -1214,7 +1222,6 @@ window.exportReportPNG = async function(id) {
         'flex:1;overflow:hidden;' +
       '"></div>' +
     '</div>' +
-
     // ── NOM / GRADE / TÉLÉGRAMME — bas gauche ──
     '<div id="exp-agent" style="' +
       'position:absolute;bottom:70px;left:95px;' +
@@ -1222,7 +1229,6 @@ window.exportReportPNG = async function(id) {
       'font-size:24px;letter-spacing:.1em;text-transform:uppercase;' +
       'color:#3D1F0D;line-height:2.1;text-align:left;' +
     '"></div>' +
-
     // ── SIGNATURE cursive — bas, à gauche du sceau ──
     '<div id="exp-signature" style="' +
       'position:absolute;bottom:130px;right:130px;' +
@@ -1232,7 +1238,6 @@ window.exportReportPNG = async function(id) {
       'white-space:nowrap;max-width:480px;' +
       'text-align:right;line-height:1;opacity:.90;' +
     '"></div>' +
-
     '</div>';
 
   // Injection sécurisée
