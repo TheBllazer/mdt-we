@@ -410,14 +410,24 @@ window.openRecordModal = async function(id) {
         </select>
       </div>
       <div class="form-group"><label>Date</label><input type="date" id="r-date" value="${r ? r.date || '' : nowDate()}"></div>
-      <div class="form-group"><label>Amende ($)</label><input type="text" id="r-fine" value="${r ? r.fine || '' : ''}"></div>
-      <div class="form-group"><label>Peine prononcée</label><input type="text" id="r-sentence" value="${r ? esc(r.sentence || '') : ''}" placeholder="Ex: 2 ans, Pendaison…"></div>
+      <div class="form-group"><label>Amende ($)</label><input type="text" id="r-fine" value="${r ? r.fine || '' : ''}" placeholder="Calculé automatiquement"></div>
+      <div class="form-group"><label>Peine prononcée</label><input type="text" id="r-sentence" value="${r ? esc(r.sentence || '') : ''}" placeholder="Calculée automatiquement"></div>
       <div class="form-group"><label>Statut</label>
         <select id="r-status">
           ${['Fugitif', 'En prison', 'Purgée', 'Décédé'].map(s => '<option' + (r && r.status === s ? ' selected' : '') + '>' + s + '</option>').join('')}
         </select>
       </div>
     </div>
+
+    <!-- Récapitulatif automatique amende + prison -->
+    <div id="sentence-summary" style="display:none;margin-top:1rem;"></div>
+
+    <!-- Avertissement PDM -->
+    <div id="pdm-warning" style="display:none;margin-top:.75rem;"
+      class="notice notice-error">
+      ⚖️ <strong>APPEL AU JUGE OBLIGATOIRE</strong> — Un ou plusieurs faits retenus constituent un Crime nécessitant l'intervention du Magistrat (PDM). Contactez le juge avant de valider.
+    </div>
+
     <div style="margin-top:1rem;">
       <label style="font-family:var(--font-stamp);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--leather);display:block;margin-bottom:.5rem;">
         Faits retenus * (code pénal)
@@ -454,8 +464,70 @@ window.openRecordModal = async function(id) {
     finally { setModalLoading(false); }
   }, r ? 'Modifier' : 'Enregistrer');
 
-  setTimeout(() => buildPenalCodePicker('penal-picker', selectedFacts), 60);
+  // Init picker + calcul automatique
+  setTimeout(() => {
+    buildPenalCodePicker('penal-picker', selectedFacts);
+    updateSentenceSummary(); // calcul initial si modification
+
+    // Écouter les changements de checkboxes
+    const picker = document.getElementById('penal-picker');
+    if (picker) {
+      picker.addEventListener('change', () => updateSentenceSummary());
+    }
+  }, 80);
 };
+
+// Calcule et affiche le récapitulatif amende + prison en temps réel
+function updateSentenceSummary() {
+  const facts = getSelectedFacts('penal-picker');
+  const summary  = document.getElementById('sentence-summary');
+  const warning  = document.getElementById('pdm-warning');
+  const fineEl   = document.getElementById('r-fine');
+  const sentEl   = document.getElementById('r-sentence');
+  if (!summary) return;
+
+  if (!facts.length) {
+    summary.style.display = 'none';
+    if (warning) warning.style.display = 'none';
+    return;
+  }
+
+  const { totalFine, totalPrison, hasPDM, hasNote } = calculateSentence(facts);
+
+  // Afficher récapitulatif
+  summary.style.display = 'block';
+  summary.innerHTML =
+    '<div style="background:var(--parchment);border:1px solid var(--border);border-left:4px solid var(--leather);padding:.85rem 1.1rem;">' +
+      '<div style="font-family:var(--font-stamp);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sepia);margin-bottom:.6rem;">Barème maximum calculé</div>' +
+      '<div style="display:flex;gap:2rem;flex-wrap:wrap;">' +
+        '<div>' +
+          '<div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;color:var(--leather);">' +
+            (totalFine > 0 ? '$' + totalFine : hasNote ? 'Voir Art.' : '—') +
+          '</div>' +
+          '<div style="font-family:var(--font-stamp);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sepia);">Amende max.</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;color:var(--leather);">' +
+            (hasPDM ? 'PDM' : totalPrison > 0 ? formatPrison(totalPrison) : '—') +
+          '</div>' +
+          '<div style="font-family:var(--font-stamp);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sepia);">Prison max.</div>' +
+        '</div>' +
+        '<div style="font-family:var(--font-stamp);font-size:.7rem;color:var(--sepia);align-self:center;">' +
+          facts.length + ' fait(s) retenu(s)' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Pré-remplir les champs amende et peine si vides
+  if (fineEl && !fineEl.value && totalFine > 0) fineEl.value = totalFine;
+  if (sentEl && !sentEl.value) {
+    if (hasPDM) sentEl.value = 'PDM — Peine du Magistrat';
+    else if (totalPrison > 0) sentEl.value = formatPrison(totalPrison);
+  }
+
+  // Afficher avertissement PDM
+  if (warning) warning.style.display = hasPDM ? 'block' : 'none';
+}
 
 window.deleteRecord = async function(id, name) {
   if (!isCommander() || !confirm('Supprimer ce casier pour ' + name + ' ?')) return;
